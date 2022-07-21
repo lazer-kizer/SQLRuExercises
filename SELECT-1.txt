@@ -1,0 +1,18 @@
+select distinct Kostya_PC.model from PC Kostya_PC
+join PC Misha_PC on Kostya_PC.speed = Misha_PC.speed
+join Product Misha_Product on Misha_PC.model = Misha_Product.model
+join Laptop Dima_Laptop on Kostya_PC.hd = Dima_Laptop.hd
+join Product Dima_Product on Dima_Laptop.model = Dima_Product.model
+join Laptop Olya_Laptop on Kostya_PC.ram = Olya_Laptop.ram
+join Printer Vitya_Printer on Kostya_PC.price = Vitya_Printer.price
+join Printer Tanya_Printer on Tanya_Printer.type <> Vitya_Printer.type
+  and Tanya_Printer.color = Vitya_Printer.color
+where 
+  Olya_Laptop.screen + 3 = Dima_Laptop.screen
+  and Misha_PC.price = 4 * Tanya_Printer.price
+  and Dima_Product.maker = Misha_Product.maker
+  and left(Vitya_Printer.model, 2) = left(Olya_Laptop.model, 2)
+  and left(Vitya_Printer.model, 3) <> left(Olya_Laptop.model, 3)
+  and 
+    right(Vitya_Printer.model, len(Vitya_Printer.model) - 3) = 
+    right(Olya_Laptop.model, len(Olya_Laptop.model) - 3)
