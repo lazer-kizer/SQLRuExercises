@@ -11,8 +11,15 @@ where
   Olya_Laptop.screen + 3 = Dima_Laptop.screen
   and Misha_PC.price = 4 * Tanya_Printer.price
   and Dima_Product.maker = Misha_Product.maker
+  and len(Vitya_Printer.model) = len(Olya_Laptop.model)
   and left(Vitya_Printer.model, 2) = left(Olya_Laptop.model, 2)
   and left(Vitya_Printer.model, 3) <> left(Olya_Laptop.model, 3)
-  and 
-    right(Vitya_Printer.model, len(Vitya_Printer.model) - 3) = 
-    right(Olya_Laptop.model, len(Olya_Laptop.model) - 3)
+  and
+    (
+      (len(Vitya_Printer.model) > 3 and len(Olya_Laptop.model) > 3
+      and
+      right(Vitya_Printer.model, len(Vitya_Printer.model) - 3) = 
+      right(Olya_Laptop.model, len(Olya_Laptop.model) - 3))
+    or
+    (len(Vitya_Printer.model) < 4 and len(Olya_Laptop.model) < 4)
+)
