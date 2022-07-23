@@ -1,0 +1,33 @@
+with datesInfo as (
+select format(date, 'yyyy-MM') dt, format(date, 'dddd') day, count(*) cnt 
+from battles group by format(date, 'yyyy-MM'), format(date, 'dddd'))
+
+select dt, 
+sum(day1),  
+sum(day2), 
+sum(day3), 
+sum(day4), 
+sum(day5), 
+sum(day6),  
+sum(day7)
+
+from
+(
+select di.dt, 
+coalesce(di1.cnt, 0) day1, 
+coalesce(di2.cnt, 0) day2, 
+coalesce(di3.cnt, 0) day3,
+coalesce(di4.cnt, 0) day4,
+coalesce(di5.cnt, 0) day5,
+coalesce(di6.cnt, 0) day6,
+coalesce(di7.cnt, 0) day7
+from (select distinct dt from datesinfo) as di
+left join datesInfo as di1 on di.dt = di1.dt and di1.day = 'Monday'
+left join datesInfo as di2 on di.dt = di2.dt and di2.day = 'Tuesday'
+left join datesInfo as di3 on di.dt = di3.dt and di3.day = 'Wednesday'
+left join datesInfo as di4 on di.dt = di4.dt and di4.day = 'Thursday'
+left join datesInfo as di5 on di.dt = di5.dt and di5.day = 'Friday'
+left join datesInfo as di6 on di.dt = di6.dt and di6.day = 'Saturday'
+left join datesInfo as di7 on di.dt = di7.dt and di7.day = 'Sunday'
+) result
+group by dt
