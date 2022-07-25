@@ -1,0 +1,27 @@
+with 
+pcGrouping as (select 
+maker, count(*) modelsCount 
+from product join pc on product.model = pc.model
+group by maker),
+
+laptopGrouping as (select 
+maker, count(*) modelsCount 
+from product join laptop on product.model = laptop.model
+group by maker),
+
+printerGrouping as (select 
+maker, count(*) modelsCount 
+from product join printer on product.model = printer.model
+group by maker)
+
+select distinct 
+
+product.maker, 
+pcGrouping.modelsCount,
+laptopGrouping.modelsCount,
+printerGrouping.modelsCount
+
+from product
+left join pcGrouping on product.maker = pcGrouping.maker
+left join laptopGrouping on product.maker = laptopGrouping.maker
+left join printerGrouping on product.maker = printerGrouping.maker
