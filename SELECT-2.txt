@@ -27,6 +27,36 @@ battleDateMonthStartsEndsWithDayOfWeek as (select
   end as dayOfWeek,
   format(monthStart, 'dddd') as spelledDayOfWeek,
   * from battleDateMonthStartsEnds
+),
+
+dayCountMatrix as (
+select 28 as cnt, 1 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 1 dayNum, 5 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 2 dayNum, 4 nd1, 5 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 3 dayNum, 4 nd1, 4 nd2, 5 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 4 dayNum, 4 nd1, 4 nd2, 4 nd3, 5 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 5 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 5 nd5, 4 nd6, 4 nd7 union
+select 29 as cnt, 6 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 5 nd6, 4 nd7 union
+select 29 as cnt, 7 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 5 nd7 union
+select 30 as cnt, 1 dayNum, 5 nd1, 5 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 30 as cnt, 2 dayNum, 4 nd1, 5 nd2, 5 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 30 as cnt, 3 dayNum, 4 nd1, 4 nd2, 5 nd3, 5 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 30 as cnt, 4 dayNum, 4 nd1, 4 nd2, 4 nd3, 5 nd4, 5 nd5, 4 nd6, 4 nd7 union
+select 30 as cnt, 5 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 5 nd5, 5 nd6, 4 nd7 union
+select 30 as cnt, 6 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 5 nd6, 5 nd7 union
+select 30 as cnt, 7 dayNum, 5 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 5 nd7 union
+select 31 as cnt, 1 dayNum, 5 nd1, 5 nd2, 5 nd3, 4 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 31 as cnt, 2 dayNum, 4 nd1, 5 nd2, 5 nd3, 5 nd4, 4 nd5, 4 nd6, 4 nd7 union
+select 31 as cnt, 3 dayNum, 4 nd1, 4 nd2, 5 nd3, 5 nd4, 5 nd5, 4 nd6, 4 nd7 union
+select 31 as cnt, 4 dayNum, 4 nd1, 4 nd2, 4 nd3, 5 nd4, 5 nd5, 5 nd6, 4 nd7 union
+select 31 as cnt, 5 dayNum, 4 nd1, 4 nd2, 4 nd3, 4 nd4, 5 nd5, 5 nd6, 5 nd7 union
+select 31 as cnt, 6 dayNum, 5 nd1, 4 nd2, 4 nd3, 4 nd4, 4 nd5, 5 nd6, 5 nd7 union
+select 31 as cnt, 7 dayNum, 5 nd1, 5 nd2, 4 nd3, 4 nd4, 4 nd5, 4 nd6, 5 nd7
 )
 
-select * from battleDateMonthStartsEndsWithDayOfWeek
+select distinct format(monthStart, 'yyyy-MM'), nd1, nd2, nd3, nd4, nd5, nd6, nd7
+from battleDateMonthStartsEndsWithDayOfWeek battlesInfo 
+join dayCountMatrix matrix
+on battlesInfo.dayOfWeek = matrix.dayNum 
+and battlesInfo.dayCount = matrix.cnt 
+or (battlesInfo.dayCount = 28 and matrix.cnt = 28)
