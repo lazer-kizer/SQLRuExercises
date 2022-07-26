@@ -1,25 +1,43 @@
+//TODO
+//If product has rows, but PC don't have, we need output yes(0)
+
 with 
 pcGrouping as (select 
-maker, count(*) modelsCount 
+maker, count(distinct pc.model) modelsCount 
 from product join pc on product.model = pc.model
+and product.type = 'PC'
 group by maker),
 
 laptopGrouping as (select 
-maker, count(*) modelsCount 
+maker, count(distinct laptop.model) modelsCount 
 from product join laptop on product.model = laptop.model
+and product.type = 'Laptop'
 group by maker),
 
 printerGrouping as (select 
-maker, count(*) modelsCount 
+maker, count(distinct printer.model) modelsCount 
 from product join printer on product.model = printer.model
+and product.type = 'Printer'
 group by maker)
 
 select distinct 
 
 product.maker, 
-pcGrouping.modelsCount,
-laptopGrouping.modelsCount,
-printerGrouping.modelsCount
+
+case 
+when pcGrouping.modelsCount is null then 'no'
+else concat('yes(', pcGrouping.modelsCount, ')')
+end,
+
+case 
+when laptopGrouping.modelsCount is null then 'no'
+else concat('yes(', laptopGrouping.modelsCount, ')')
+end,
+
+case 
+when printerGrouping.modelsCount is null then 'no'
+else concat('yes(', printerGrouping.modelsCount, ')')
+end
 
 from product
 left join pcGrouping on product.maker = pcGrouping.maker
