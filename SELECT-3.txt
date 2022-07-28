@@ -18,21 +18,24 @@ and product.type = 'Printer'
 group by maker),
 
 pcNotAvailable as (select
-maker, count(*) modelsCount
-from product left join PC on product.model = PC.model
-and product.type = 'PC' and PC.model is null 
+maker, count(distinct pcProduct.model) modelsCount
+from (select * from product where product.type = 'PC') pcProduct 
+left join PC on pcProduct.model = PC.model
+where PC.model is null
 group by maker),
 
 printerNotAvailable as (select
 maker, count(*) modelsCount
-from product left join Printer on product.model = Printer.model
-and product.type = 'Printer' and Printer.model is null 
+from (select * from product where product.type = 'Printer') printerProduct 
+left join Printer on printerProduct.model = Printer.model
+where Printer.model is null
 group by maker),
 
 laptopNotAvailable as (select
 maker, count(*) modelsCount
-from product left join Laptop on product.model = Laptop.model
-and product.type = 'Laptop' and Laptop.model is null 
+from (select * from product where product.type = 'Laptop') laptopProduct 
+left join Laptop on laptopProduct.model = Laptop.model
+where Laptop.model is null
 group by maker)
 
 select distinct 
@@ -40,26 +43,26 @@ select distinct
 product.maker, 
 
 case 
-when pcGrouping.modelsCount is null then 'no'
 when pcGrouping.modelsCount is null 
      and pcNotAvailable.modelsCount is not null
      and pcNotAvailable.modelsCount > 0 then 'yes(0)'
+when pcGrouping.modelsCount is null then 'no'
 else concat('yes(', pcGrouping.modelsCount, ')')
 end as pc,
 
 case 
-when laptopGrouping.modelsCount is null then 'no'
 when laptopGrouping.modelsCount is null 
      and laptopNotAvailable.modelsCount is not null
      and laptopNotAvailable.modelsCount > 0 then 'yes(0)'
+when laptopGrouping.modelsCount is null then 'no'
 else concat('yes(', laptopGrouping.modelsCount, ')')
 end as laptop,
 
 case 
-when printerGrouping.modelsCount is null then 'no'
 when printerGrouping.modelsCount is null
      and printerNotAvailable.modelsCount is not null
      and printerNotAvailable.modelsCount > 0 then 'yes(0)'
+when printerGrouping.modelsCount is null then 'no'
 else concat('yes(', printerGrouping.modelsCount, ')')
 end as printer
 
