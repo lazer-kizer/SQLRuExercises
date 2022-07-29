@@ -1,28 +1,26 @@
---Обработать ситуацию, когда вообще нет цифр?
-
-select distinct model,
-
-col0 * 0 +
-col1 * 1 + 
-col2 * 2 +
-col3 * 3 +
-col4 * 4 +
-col5 * 5 +
-col6 * 6 +
-col7 * 7 +
-col8 * 8 +
-col9 * 9 digitsSum
-
-from (
-select model,
-LEN(model) - LEN(REPLACE(model,'0','')) as col0,
-LEN(model) - LEN(REPLACE(model,'1','')) as col1,
-LEN(model) - LEN(REPLACE(model,'2','')) as col2,
-LEN(model) - LEN(REPLACE(model,'3','')) as col3,
-LEN(model) - LEN(REPLACE(model,'4','')) as col4,
-LEN(model) - LEN(REPLACE(model,'5','')) as col5,
-LEN(model) - LEN(REPLACE(model,'6','')) as col6,
-LEN(model) - LEN(REPLACE(model,'7','')) as col7,
-LEN(model) - LEN(REPLACE(model,'8','')) as col8,
-LEN(model) - LEN(REPLACE(model,'9','')) as col9
-from Product) ProductWithDigits
+select model, 
+ 
+col0 * 0 + 
+col1 * 1 +  
+col2 * 2 + 
+col3 * 3 + 
+col4 * 4 + 
+col5 * 5 + 
+col6 * 6 + 
+col7 * 7 + 
+col8 * 8 + 
+col9 * 9 digitsSum 
+ 
+from ( 
+select model, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'0','')) col0, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'1','')) col1, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'2','')) col2, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'3','')) col3, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'4','')) col4, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'5','')) col5, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'6','')) col6, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'7','')) col7, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'8','')) col8, 
+LEN(truncModel) - LEN(REPLACE(truncModel,'9','')) col9 
+from (select model, REPLACE(model,' ','') truncModel from Product ) TruncProduct ) ProductWithDigits
