@@ -1,0 +1,12 @@
+with comings as (
+select code, point, date, inc from income
+union
+select code, point, date, -out as out from outcome
+),
+filterComings as (
+select * from comings
+where date < 
+(select DATEADD(month, DATEDIFF(month, 0, max(date)) - 2, 0) from comings)
+)
+
+select *, dense_rank() over (order by code) from filterComings
