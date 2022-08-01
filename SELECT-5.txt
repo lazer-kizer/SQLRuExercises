@@ -1,12 +1,23 @@
 with comings as (
-select code, point, date, inc from income
+select code, point, date, inc as comes from income
 union
-select code, point, date, -out as out from outcome
+select code, point, date, -out as comes from outcome
 ),
 filterComings as (
-select * from comings
+select *, 
+DATEADD(month, DATEDIFF(month, 0, date), 0) as monthBeginning,
+DATEADD(month, DATEDIFF(month, 0, date) + 1, 0) as nextMonthBeginning
+from comings
 where date < 
 (select DATEADD(month, DATEDIFF(month, 0, max(date)) - 2, 0) from comings)
 )
 
-select *, dense_rank() over (order by code) from filterComings
+select 
+dense_rank() over (order by monthBeginning), 
+FORMAT (monthBeginning, 'yyyy-MM-dd'),
+FORMAT (DATEADD(day, -1, nextMonthBeginning), 'yyyy-MM-dd') monthEnding,
+code,
+point,
+date,
+comes
+from filterComings
