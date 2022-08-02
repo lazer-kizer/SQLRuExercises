@@ -1,0 +1,37 @@
+with threeWordsSheeps as (
+select * from Ships
+where len(name) - len(replace(name,' ','')) < 3
+)
+
+, firstSpacePositionSheeps as (
+select *, charIndex(' ', name, 0) as firstSpace
+from threeWordsSheeps
+)
+
+, lastSpacePositionSheeps as (
+select *, 
+charIndex(' ', name, firstSpace + 1) as lastSpace,
+len(name) as endPosition
+from firstSpacePositionSheeps
+)
+
+, words as (select substring(name, 0, firstSpace) as name
+from lastSpacePositionSheeps 
+where firstSpace > 0
+union all
+select substring(name, firstSpace + 1, lastSpace - firstSpace) as name
+from lastSpacePositionSheeps 
+where lastSpace > firstSpace
+union all
+select substring(name, lastSpace + 1, endPosition - lastSpace) as name
+from lastSpacePositionSheeps 
+where lastSpace > firstSpace)
+union all
+select substring(name, firstSpace + 1, endPosition - firstSpace) as name
+from lastSpacePositionSheeps 
+where lastSpace = 0)
+
+select name, count(*)
+from words
+group by name
+having count(*) > 1
