@@ -1,0 +1,18 @@
+with withPrevNumUtb as (
+select *,
+row_number() over (partition by b_q_id, b_v_id order by b_datetime) prevNum
+from utB)
+
+, withPrevUtb as (
+select a.b_datetime, a.b_q_id, a.b_v_id, a.b_vol, a.prevNum, 
+b.b_dateTime as pD, b.b_vol as pV
+from withPrevNumUtb a
+left join withPrevNumUtb b
+on a.b_q_id = b.b_q_id and a.b_v_id = b.b_v_id and a.prevNum -1 = b.prevNum)
+
+select a.b_datetime, a.b_q_id, a.b_v_id, a.b_vol, a.pD, a.pV, 
+string_agg(format(b.b_datetime,'yyyy-MM-dd hh:mm:ss'), ',') WITHIN GROUP (ORDER BY b.b_datetime desc)
+from withPrevUtb a left join withPrevUtb b
+on a.b_q_id = b.b_q_id and a.b_v_id = b.b_v_id and a.prevNum > b.prevNum
+group by a.b_datetime, a.b_q_id, a.b_v_id, a.b_vol, a.pD, a.pV
+order by a.b_datetime
