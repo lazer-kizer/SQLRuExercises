@@ -1,0 +1,52 @@
+select allQ.rght, allQ.lft,
+case
+when mn = mx then 'min-max'
+when mn = diff then 'min'
+when mx = diff then 'max'
+else '-' 
+end as stts
+
+
+from
+
+(select max(diff) as mx, min(diff) as mn
+
+from 
+
+(select fq1.id1 + 1 rght, fq2.id1 - 1 lft, fq2.id1 - fq1.id1 - 1 as diff from
+
+(select rank() over (order by q1.q_id) as rnk, 
+q1.q_id id1, q2.q_id idr, q3.q_id idl from utQ q1 
+left join utQ q2 on q1.q_id +1 = q2.q_id
+left join utQ q3 on q1.q_id -1 = q3.q_id) as fq1
+
+join
+
+(select rank() over (order by q1.q_id) as rnk, 
+q1.q_id id1, q2.q_id idr, q3.q_id idl from utQ q1 
+left join utQ q2 on q1.q_id +1 = q2.q_id
+left join utQ q3 on q1.q_id -1 = q3.q_id) as fq2
+
+on fq1.rnk + 1 = fq2.rnk and fq1.idr is NULL and fq2.idl is NULL
+) as allQ1 ) as minMax
+
+join
+
+(select fq1.id1 + 1 rght, fq2.id1 - 1 lft, fq2.id1 - fq1.id1 - 1 as diff from
+
+(select rank() over (order by q1.q_id) as rnk, 
+q1.q_id id1, q2.q_id idr, q3.q_id idl from utQ q1 
+left join utQ q2 on q1.q_id +1 = q2.q_id
+left join utQ q3 on q1.q_id -1 = q3.q_id) as fq1
+
+join
+
+(select rank() over (order by q1.q_id) as rnk, 
+q1.q_id id1, q2.q_id idr, q3.q_id idl from utQ q1 
+left join utQ q2 on q1.q_id +1 = q2.q_id
+left join utQ q3 on q1.q_id -1 = q3.q_id) as fq2
+
+on fq1.rnk + 1 = fq2.rnk and fq1.idr is NULL and fq2.idl is NULL
+) as allQ
+
+on 1 = 1
