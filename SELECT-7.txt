@@ -11,7 +11,7 @@ left join withPrevNumUtb b
 on a.b_q_id = b.b_q_id and a.b_v_id = b.b_v_id and a.prevNum -1 = b.prevNum)
 
 select a.b_datetime, a.b_q_id, a.b_v_id, a.b_vol, a.pD, a.pV, 
-string_agg(format(b.b_datetime,'yyyy-MM-dd hh:mm:ss'), ',') WITHIN GROUP (ORDER BY b.b_datetime desc)
+string_agg(convert(varchar, b.b_datetime, 120), ',') WITHIN GROUP (ORDER BY b.b_datetime desc)
 from withPrevUtb a left join withPrevUtb b
 on a.b_q_id = b.b_q_id and a.b_v_id = b.b_v_id and a.prevNum > b.prevNum
 group by a.b_datetime, a.b_q_id, a.b_v_id, a.b_vol, a.pD, a.pV
