@@ -1,0 +1,9 @@
+with medAvgOutcome as (
+select code, point, out, avg(out) over (partition by point) avgVal,
+percentile_cont(0.5) WITHIN GROUP (ORDER BY out) over (partition by point) medVal
+from outcome
+)
+
+select code, point, out, convert(numeric(10,4), medVal), avgVal from medAvgOutcome
+where (avgVal > medVal and avgVal > out and out > medVal) or
+  (avgVal < medVal and avgVal < out and out < medVal)
