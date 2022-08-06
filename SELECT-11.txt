@@ -1,0 +1,15 @@
+with whiteSq as 
+(select b_q_id from utb group by b_q_id having sum(b_vol) = 765)
+
+, singleBal as
+(select b_v_id from utb group by b_v_id having count(distinct b_q_id) = 1)
+
+select q_name from utQ
+join whiteSq on utQ.q_id = whiteSq.b_q_id
+where q_id not in
+
+(select distinct utb.b_q_id from utb 
+join whiteSq on utb.b_q_id = whiteSq.b_q_id
+left join singleBal on utb.b_v_id = singleBal.b_v_id
+where singleBal.b_v_id is null
+)
