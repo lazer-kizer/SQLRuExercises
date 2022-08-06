@@ -1,0 +1,16 @@
+with sorted as (
+select b_vol,
+rank() over (order by b_q_id desc, b_v_id desc, b_datetime desc) as rankId
+from utb
+)
+
+, joined as (
+select s1.b_vol, s1.rankId, s2.rankId as rankIdNext
+from sorted s1
+left join sorted s2
+on s1.b_vol = s2.b_vol and s1.rankId + 1 = s2.rankId
+)
+
+select top(1) rankId, b_vol 
+from joined where rankIdNext is null
+order by rankId
