@@ -1,0 +1,29 @@
+with redO as (
+select b_datetime dateO, sum(b_vol) redV from utb
+join utV on utb.b_v_id = utv.v_id where v_color = 'r'
+group by b_datetime)
+
+, allO as (
+select b_datetime dateO, sum(b_vol) allV from utb
+join utV on utb.b_v_id = utv.v_id
+group by b_datetime)
+
+, infO as (
+select allO.dateO, redV, allV 
+from allO left join redO on redO.dateO = allO.dateO)
+
+, firstOption as (
+select top 1 dateO, redV vol from infO
+where dateO = (select min(dateO) from infO where dateO > (select max(dateO) from infO where redV is null)))
+
+, secondOption as (
+select top 1 dateO, isnull(redV, 0) vol from info
+where dateO = (select min(dateO) from info))
+
+select top(1) * from
+(
+select * from firstoption
+union
+select * from secondOption
+) sumOption
+order by dateO desc
