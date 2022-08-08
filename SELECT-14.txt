@@ -1,0 +1,13 @@
+with cumTrips as (
+select ID_psg, date, time_out, time_in, trip.town_to, trip.town_from
+from pass_in_trip join trip
+on trip.trip_no = pass_in_trip.trip_no
+)
+
+select cumTrips1.id_psg, cumTrips2.date from cumTrips cumTrips1
+join cumTrips cumTrips2 on 
+cumTrips1.ID_psg = cumTrips2.ID_psg and
+cumTrips1.town_from = cumTrips2.town_to and 
+cumTrips1.date = cumTrips2.date and 
+cumTrips1.time_out < cumTrips2.time_in
+where cumtrips2.time_in > cumtrips2.time_out
