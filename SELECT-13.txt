@@ -4,14 +4,18 @@ min(b_datetime) over (partition by b_q_id) minDate,
 max(b_datetime) over (partition by b_q_id) maxDate from utb)
 
 , startB as (
-select sqId, utQ.q_Name, balId from utB 
-join minMaxUtb on utB.b_dateTime = minDate and utB.b_q_id = sqId
-join utQ on utQ.q_id = sqId)
+select sqId, balId from utB 
+join minMaxUtb on utB.b_dateTime = minDate 
+and utB.b_v_id = balId and utB.b_q_id = sqId)
 
 , endB as (
-select sqId, utQ.q_Name, balId from utB 
-join minMaxUtb on utB.b_dateTime = maxDate and utB.b_q_id = sqId
-join utQ on utQ.q_id = sqId)
+select sqId, balId from utB 
+join minMaxUtb on utB.b_dateTime = maxDate
+and utB.b_v_id = balId and utB.b_q_id = sqId)
 
-select distinct * from startB join endB 
-on startB.balId = endB.balId and startB.sqId = endB.sqId
+select distinct utv.v_name, utq1.q_name, utq2.q_name
+from startB join endB 
+on startB.balId = endB.balId and startB.sqId <> endB.sqId
+join utv on utv.v_id = startB.balId
+join utq as utq1 on utq1.q_id = startB.sqId
+join utq as utq2 on utq2.q_id = endB.sqId
