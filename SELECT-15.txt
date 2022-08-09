@@ -1,0 +1,24 @@
+with people as (
+select trips.id_psg passengerId, name passengerName 
+from trip tripsInfo 
+join pass_in_trip trips on trips.trip_no = tripsInfo.trip_no
+join Passenger on Passenger.id_psg = trips.id_psg
+group by trips.id_psg, name having count(distinct id_comp) > 1)
+
+, trips as (
+select id_psg passengerId, name companyName from trip 
+join pass_in_trip on pass_in_trip.trip_no = trip.trip_no
+join company on company.id_comp = trip.id_comp
+)
+
+select distinct people.passengerName, 
+count(*) over (partition by people.PassengerId, companyName), companyName 
+from trips 
+join people on trips.passengerId = people.PassengerId
+
+union
+
+select people.passengerName, 
+count(*), 'FLIGHTS_TOTAL'
+from trips join people on trips.passengerId = people.PassengerId
+group by people.passengerName, people.passengerId
