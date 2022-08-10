@@ -1,0 +1,15 @@
+with allGroups as (
+select sh1.name ship1, sh2.name ship2, sh3.name ship3 
+from ships sh1 
+join ships sh2 on sh1.name <> sh2.name
+join ships sh3 on sh1.name <> sh3.name and sh2.name <> sh3.name)
+
+, partGroups as (select ship1, ship2, ship3, out1.battle from allGroups
+join outcomes out1 on allGroups.ship1 = out1.ship
+join outcomes out2 on allGroups.ship2 = out2.ship
+join outcomes out3 on allGroups.ship3 = out3.ship
+where out1.battle = out2.battle and out1.battle = out3.battle)
+
+select ship1, ship2, ship3, count(*) from partGroups
+group by ship1, ship2, ship3
+order by count(*)
