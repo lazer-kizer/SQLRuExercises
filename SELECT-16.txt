@@ -1,8 +1,12 @@
-with allGroups as (
+with orderedShips as (
+select rank() over (order by ship) as rnk, ship as name
+from (select distinct ship from outcomes) battleShips)
+
+, allGroups as (
 select sh1.name ship1, sh2.name ship2, sh3.name ship3 
-from ships sh1 
-join ships sh2 on sh1.name <> sh2.name
-join ships sh3 on sh1.name <> sh3.name and sh2.name <> sh3.name)
+from orderedShips sh1 
+join orderedShips sh2 on sh1.rnk < sh2.rnk
+join orderedShips sh3 on sh2.rnk < sh3.rnk)
 
 , partGroups as (select ship1, ship2, ship3, out1.battle from allGroups
 join outcomes out1 on allGroups.ship1 = out1.ship
@@ -10,6 +14,105 @@ join outcomes out2 on allGroups.ship2 = out2.ship
 join outcomes out3 on allGroups.ship3 = out3.ship
 where out1.battle = out2.battle and out1.battle = out3.battle)
 
-select ship1, ship2, ship3, count(*) from partGroups
-group by ship1, ship2, ship3
-order by count(*)
+, triplets as (select ship1, ship2, ship3, count(*) battles 
+from partGroups
+group by ship1, ship2, ship3)
+
+, orderedTriplets as (select ship1, ship2, ship3,
+rank() over (order by battles, ship1, ship2, ship3) rnk
+from triplets)
+
+, allTriplets as (
+select rnk, ship1 from orderedTriplets
+union
+select rnk, ship2 from orderedTriplets
+union
+select rnk, ship3 from orderedTriplets)
+
+select * from allTriplets
+
+
+
+
+<ships>
+	<battles>
+		<row>
+			<name>1th</name>
+			<date>1941-05-25 00:00:00.001</date>
+		</row>
+		<row>
+			<name>2th</name>
+			<date>1941-05-25 00:00:00.002</date>
+		</row>
+		<row>
+			<name>3th</name>
+			<date>1941-05-25 00:00:00.003</date>
+		</row>
+		<row>
+			<name>4th</name>
+			<date>1941-05-25 00:00:00.004</date>
+		</row>
+	</battles>
+	<outcomes>
+		<row>
+			<ship>ship1</ship>
+			<battle>1th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship2</ship>
+			<battle>1th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship3</ship>
+			<battle>1th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship2</ship>
+			<battle>2th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship3</ship>
+			<battle>2th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship4</ship>
+			<battle>2th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship3</ship>
+			<battle>3th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship4</ship>
+			<battle>3th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship5</ship>
+			<battle>3th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship1</ship>
+			<battle>4th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship2</ship>
+			<battle>4th</battle>
+			<result>ok</result>
+		</row>
+		<row>
+			<ship>ship3</ship>
+			<battle>4th</battle>
+			<result>ok</result>
+		</row>
+	</outcomes>
+</ships>
