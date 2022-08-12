@@ -18,101 +18,19 @@ where out1.battle = out2.battle and out1.battle = out3.battle)
 from partGroups
 group by ship1, ship2, ship3)
 
-, orderedTriplets as (select ship1, ship2, ship3,
-rank() over (order by battles, ship1, ship2, ship3) rnk
+, orderedTriplets as (select ship1, ship2, ship3, battles,
+rank() over (order by battles desc, ship1, ship2, ship3) rnk
 from triplets)
 
 , allTriplets as (
-select rnk, ship1 from orderedTriplets
+select rnk, ship1 as shipName from orderedTriplets
+where battles  = (select max(battles) from orderedTriplets)
 union
-select rnk, ship2 from orderedTriplets
+select rnk, ship2 as shipName from orderedTriplets
+where battles  = (select max(battles) from orderedTriplets)
 union
-select rnk, ship3 from orderedTriplets)
+select rnk, ship3 as shipName from orderedTriplets
+where battles  = (select max(battles) from orderedTriplets))
 
 select * from allTriplets
-
-
-
-
-<ships>
-	<battles>
-		<row>
-			<name>1th</name>
-			<date>1941-05-25 00:00:00.001</date>
-		</row>
-		<row>
-			<name>2th</name>
-			<date>1941-05-25 00:00:00.002</date>
-		</row>
-		<row>
-			<name>3th</name>
-			<date>1941-05-25 00:00:00.003</date>
-		</row>
-		<row>
-			<name>4th</name>
-			<date>1941-05-25 00:00:00.004</date>
-		</row>
-	</battles>
-	<outcomes>
-		<row>
-			<ship>ship1</ship>
-			<battle>1th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship2</ship>
-			<battle>1th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship3</ship>
-			<battle>1th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship2</ship>
-			<battle>2th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship3</ship>
-			<battle>2th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship4</ship>
-			<battle>2th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship3</ship>
-			<battle>3th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship4</ship>
-			<battle>3th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship5</ship>
-			<battle>3th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship1</ship>
-			<battle>4th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship2</ship>
-			<battle>4th</battle>
-			<result>ok</result>
-		</row>
-		<row>
-			<ship>ship3</ship>
-			<battle>4th</battle>
-			<result>ok</result>
-		</row>
-	</outcomes>
-</ships>
+order by rnk, shipName
