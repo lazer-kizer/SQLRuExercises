@@ -1,7 +1,17 @@
- with companyPlanes as (
-select distinct trip.id_comp as companyId, plane, 
-count(*) over (partition by trip.id_comp) planesCount
+with companyPlanes as (
+select distinct trip.id_comp as companyId, plane
 from company join trip on company.id_comp = trip.id_comp
+)
+
+, companyPlanesCount as (
+select companyId, count(*) planesCount
+from companyPlanes
+group by companyId)
+
+, companyPlanesInfo as (
+select companyPlanes.companyId, plane, planesCount
+from companyPlanes join companyPlanesCount
+on companyPlanes.companyId = companyPlanesCount.companyId
 )
 
 , joinedCompanies as (select 
@@ -10,13 +20,21 @@ planes1.planesCount planesCount1,
 planes2.companyId companyId2,
 planes2.planesCount planesCount2
 
-from companyPlanes planes1
-full join companyPlanes planes2
+from companyPlanesInfo planes1
+full join companyPlanesInfo planes2
 on planes1.plane = planes2.plane
 and planes1.companyId <> planes2.companyId
-
 where planes1.companyId is not null and planes2.companyId is not null)
 
+, targetCompanies as (
 select companyId1, companyId2, planesCount1, planesCount2,
 count(*) commonCount from joinedCompanies
 group by companyId1, companyId2, planesCount1, planesCount2
+having count(*) = planesCount2
+)
+
+, result as (select distinct companyId1, name
+from company join targetCompanies on id_comp = companyId1
+)
+
+select name from result
