@@ -1,0 +1,38 @@
+with ticket as (select 
+concat(company.name, plane, town_from, town_to, place, passenger.name) as info
+from pass_in_trip 
+join trip on trip.trip_no = pass_in_trip.trip_no
+join company on trip.id_comp = company.id_comp
+join passenger on pass_in_trip.id_psg = passenger.id_psg
+)
+
+, oneString as (
+select lower(string_agg(replace(info, ' ', ''),'')) str 
+from ticket)
+
+select 'a', len(str) - len(replace(str, 'a', '')) from oneString union
+select 'b', len(str) - len(replace(str, 'b', '')) from oneString union
+select 'c', len(str) - len(replace(str, 'c', '')) from oneString union
+select 'd', len(str) - len(replace(str, 'd', '')) from oneString union
+select 'e', len(str) - len(replace(str, 'e', '')) from oneString union
+select 'f', len(str) - len(replace(str, 'f', '')) from oneString union
+select 'g', len(str) - len(replace(str, 'g', '')) from oneString union
+select 'h', len(str) - len(replace(str, 'h', '')) from oneString union
+select 'i', len(str) - len(replace(str, 'i', '')) from oneString union
+select 'j', len(str) - len(replace(str, 'j', '')) from oneString union
+select 'k', len(str) - len(replace(str, 'k', '')) from oneString union
+select 'l', len(str) - len(replace(str, 'l', '')) from oneString union
+select 'm', len(str) - len(replace(str, 'm', '')) from oneString union
+select 'n', len(str) - len(replace(str, 'n', '')) from oneString union
+select 'o', len(str) - len(replace(str, 'o', '')) from oneString union
+select 'p', len(str) - len(replace(str, 'p', '')) from oneString union
+select 'q', len(str) - len(replace(str, 'q', '')) from oneString union
+select 'r', len(str) - len(replace(str, 'r', '')) from oneString union
+select 's', len(str) - len(replace(str, 's', '')) from oneString union
+select 't', len(str) - len(replace(str, 't', '')) from oneString union
+select 'u', len(str) - len(replace(str, 'u', '')) from oneString union
+select 'v', len(str) - len(replace(str, 'v', '')) from oneString union
+select 'x', len(str) - len(replace(str, 'x', '')) from oneString union
+select 'y', len(str) - len(replace(str, 'y', '')) from oneString union
+select 'z', len(str) - len(replace(str, 'z', '')) from oneString union
+select 'w', len(str) - len(replace(str, 'w', '')) from oneString
