@@ -4,9 +4,9 @@ from utb join utv
 on utb.b_v_id = utv.v_id
 group by b_q_id, v_color)
 
-, redInfo as (select qId, vol from colorInfo where color = 'R' and vol = 255)
-, greenInfo as (select qId, vol from colorInfo where color = 'G' and vol = 255)
-, blueInfo as (select qId, vol from colorInfo where color = 'B' and vol = 255)
+,redInfo as (select qId, vol from colorInfo where color = 'R' and vol = 255)
+,greenInfo as (select qId, vol from colorInfo where color = 'G' and vol = 255)
+,blueInfo as (select qId, vol from colorInfo where color = 'B' and vol = 255)
 
 , whiteSquares as ( select redInfo.qId from redInfo 
 join greenInfo on redInfo.qId = greenInfo.qId
@@ -20,12 +20,14 @@ join emptyBln on emptyBln.b_v_id = utb.b_v_id
 left join whiteSquares on whiteSquares.qId = utb.b_q_id
 where qId is null)
 
-, squaresToExclude as (select distinct utb.b_q_id from utb
+, squaresToExclude as (
+select distinct utb.b_q_id qid from utb
 join whiteSquares on whiteSquares.qId = utb.b_q_id
-left join EmptyBln on EmptyBln.b_v_id = utb.b_v_id
-where utb.b_v_id in (select * from balToExclude)
-and emptybln.b_v_id is not null)
+left join EmptyBln on EmptyBln.b_v_id = utb.b_v_id and utb.b_v_id not in (select * from balToExclude)
+where emptybln.b_v_id is null)
 
-select * from whiteSquares
+select Q_Name from whiteSquares
+join utQ on qId = utq.q_id
 except
-select * from squaresToExclude
+select Q_Name from squaresToExclude
+join utQ on qId = utq.q_id
