@@ -1,7 +1,31 @@
-select format(dateadd(day, cast(value as int), '2003-03-28'), 'yyyy-MM-dd') from string_split('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31',',')
+select days1.dd, days2.dd from
 
-except
-
-select format(date, 'yyyy-MM-dd') from pass_in_trip
+(select *, rank() over (order by dd) rnk from
+(select dd, 
+datediff(day, lag(dd,1,dd) over (order by dd), dd) prev,
+datediff(day, dd, lead(dd,1,dd) over (order by dd)) next from (
+select format(dateadd(day,cast(value as int),'2003-03-28'),'yyyy-MM-dd') dd from string_split('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31',',') except
+select 
+case when town_to = 'Rostov' and time_in < time_out then format(dateadd(day, 1, date), 'yyyy-MM-dd') else format(date, 'yyyy-MM-dd') end dd  
+from pass_in_trip
 join trip on pass_in_trip.trip_no = trip.trip_no
-where town_from = 'Rostov' or town_to = 'Rostov'
+where town_from = 'Rostov' or town_to = 'Rostov' ) daysOff) prevNextDays
+where prev <> 1 or next <> 1) days1
+
+join
+
+(select *, rank() over (order by dd) rnk from
+(select dd, 
+datediff(day, lag(dd,1,dd) over (order by dd), dd) prev,
+datediff(day, dd, lead(dd,1,dd) over (order by dd)) next from (
+select format(dateadd(day,cast(value as int),'2003-03-28'),'yyyy-MM-dd') dd from string_split('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31',',') except
+select 
+case when town_to = 'Rostov' and time_in < time_out then format(dateadd(day, 1, date), 'yyyy-MM-dd') else format(date, 'yyyy-MM-dd') end dd 
+from pass_in_trip
+join trip on pass_in_trip.trip_no = trip.trip_no
+where town_from = 'Rostov' or town_to = 'Rostov' ) daysOff) prevNextDays
+where prev <> 1 or next <> 1) days2
+
+on 
+days1.rnk = days2.rnk -1 and days1.next = 1
+or ( days1.rnk = days2.rnk and days1.prev <> 1 and days1.next <> 1)
