@@ -1,0 +1,39 @@
+with squares as (
+select q_id as id, coalesce(b_vol, 0) as vol, coalesce(v_color, 'R') as color 
+from utq left join utb on q_id = b_q_id left join utV on utv.v_id = utb.b_v_id
+)
+
+, colors as (select id, color, sum(vol) sum from squares group by id, color)
+, red as (select * from colors where color = 'R')
+, green as (select * from colors where color = 'G')
+, blue as (select * from colors where color = 'B')
+
+, groups as (select coalesce(red.id, green.id, blue.id) id,
+case 
+when 0 <= coalesce(red.sum, 0) and coalesce(red.sum, 0) <= 63 then 1
+when 64 <= coalesce(red.sum, 0) and coalesce(red.sum, 0) <= 127 then 2
+when 128 <= coalesce(red.sum, 0) and coalesce(red.sum, 0) <= 191 then 3
+when 192 <= coalesce(red.sum, 0) and coalesce(red.sum, 0) <= 255 then 4
+end as red,
+case 
+when 0 <= coalesce(green.sum, 0) and coalesce(green.sum, 0) <= 63 then 1
+when 64 <= coalesce(green.sum, 0) and coalesce(green.sum, 0) <= 127 then 2
+when 128 <= coalesce(green.sum, 0) and coalesce(green.sum, 0) <= 191 then 3
+when 192 <= coalesce(green.sum, 0) and coalesce(green.sum, 0) <= 255 then 4
+end as green,
+case 
+when 0 <= coalesce(blue.sum, 0) and coalesce(blue.sum, 0) <= 63 then 1
+when 64 <= coalesce(blue.sum, 0) and coalesce(blue.sum, 0) <= 127 then 2
+when 128 <= coalesce(blue.sum, 0) and coalesce(blue.sum, 0) <= 191 then 3
+when 192 <= coalesce(blue.sum, 0) and coalesce(blue.sum, 0) <= 255 then 4
+end as blue
+from red 
+full join green on red.id = green.id 
+full join blue on red.id = blue.id)
+
+, squareGroups as (select id, red from groups
+union select id, green from groups
+union select id, blue from groups)
+
+select q_name, string_agg(red, ', ') from squareGroups join utq on q_id = id
+group by q_name
