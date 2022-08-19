@@ -1,0 +1,21 @@
+with june as (select b_q_id id, max(b_datetime) date, datepart(year, max(b_datetime)) year, datepart(month, max(b_datetime)) month
+from utb group by b_q_id having datepart(month, max(b_datetime)) = 6)
+
+, february as (select b_q_id id, min(b_datetime) date, datepart(year, min(b_datetime)) year, datepart(month, min(b_datetime)) month
+from utb group by b_q_id having datepart(month, min(b_datetime)) = 2)
+
+, juneBal as (select b_v_id id, year, id squareId from utb join june 
+on june.id = utb.b_q_id)
+
+, februaryBal as (select b_v_id id, year, id squareId from utb join february 
+on february.id = utb.b_q_id)
+
+, baloon as (select distinct juneBal.id balId, juneBal.year june, februaryBal.year febr from juneBal join februaryBal on juneBal.id = februaryBal.id where juneBal.year + 1 = februaryBal.year)
+
+select distinct juneSquare.q_name, utv.v_name, februarySquare.q_name from baloon
+join juneBal on baloon.balId = juneBal.id
+join februaryBal on baloon.balId = februaryBal.id
+join utq juneSquare on juneSquare.q_id = juneBal.squareId
+join utq februarySquare on februarySquare.q_id = februaryBal.squareId
+join utv on juneBal.id = utv.v_id
+where juneBal.year + 1 = februaryBal.year
