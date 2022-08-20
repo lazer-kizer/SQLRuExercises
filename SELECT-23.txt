@@ -1,0 +1,6 @@
+select dateadd(day,number,date) fullDay, format(dateadd(day,number,date),'dddd') week from (select DATEADD(month,DATEDIFF(month,0,date),0) date from outcomes join Battles on name = battle where ship = 'Bismarck') dates
+cross join
+(select cast(value as int) as number from string_split('0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33',' ')) numbers
+where datepart(month,dateadd(day,number,date)) = datepart(month,date)
+
+PIVOT ЯВНО ИСПОЛЬЗОВАТЬ
