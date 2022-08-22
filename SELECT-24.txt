@@ -1,0 +1,56 @@
+with targetModels as 
+(select distinct model, cast(price as int) p from pc where price < 1000)
+
+, r as (select model, p, p / 100 s, (p % 100) / 10 d, p % 10 e from targetModels)
+
+, str as (
+select model, p,
+
+case 
+when s = 1 then 'one hundred'
+when s = 2 then 'two hundred'
+when s = 3 then 'three hundred'
+when s = 4 then 'four hundred'
+when s = 5 then 'five hundred'
+when s = 6 then 'six hundred'
+when s = 7 then 'seven hundred'
+when s = 8 then 'eight hundred'
+when s = 9 then 'nine hundred'
+else null end s,
+
+case 
+when d = 1 and e = 0 then 'ten'
+when d = 1 and e = 1 then 'eleven'
+when d = 1 and e = 2 then 'twelve'
+when d = 1 and e = 3 then 'thirteen'
+when d = 1 and e = 4 then 'fourteen'
+when d = 1 and e = 5 then 'fifteen'
+when d = 1 and e = 6 then 'sixteen'
+when d = 1 and e = 7 then 'seventeen'
+when d = 1 and e = 8 then 'eighteen'
+when d = 1 and e = 9 then 'nineteen'
+when d = 2 then 'twenty'
+when d = 3 then 'thirty'
+when d = 4 then 'forty'
+when d = 5 then 'fifty'
+when d = 6 then 'sixty'
+when d = 7 then 'seventy'
+when d = 8 then 'eighty'
+when d = 9 then 'ninety'
+else null end d,
+
+case 
+when d <> 1 and e = 1 then 'one'
+when d <> 1 and e = 2 then 'two'
+when d <> 1 and e = 3 then 'three'
+when d <> 1 and e = 4 then 'four'
+when d <> 1 and e = 5 then 'five'
+when d <> 1 and e = 6 then 'six'
+when d <> 1 and e = 7 then 'seven'
+when d <> 1 and e = 8 then 'eight'
+when d <> 1 and e = 9 then 'nine'
+else null end e
+
+from r)
+
+select model, p, replace(trim(concat(s, ' ', d, ' ', e)),'  ', ' ') from str
