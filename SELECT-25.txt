@@ -1,0 +1,13 @@
+with psgInOut as (select id_psg psgId, format(date, 'dddd') dayOut,
+format(dateadd(day, (case when time_out > time_in then 1 else 0 end), date), 'dddd') dayIn
+from pass_in_trip join trip on pass_in_trip.trip_no = pass_in_trip.trip_no)
+
+, psgStat as (select psgId, case when dayOut in ('Saturday','Sunday') then 0 else 1 end working, case when dayOut in ('Saturday','Sunday') then 1 else 0 end holiday, case when dayIn = 'Monday' then 1 else 0 end mondayIn from psgInOut)
+
+, mondStat as (select psgId, sum(mondayIn) mondayIn
+from psgStat group by psgId
+having sum(working) > sum(holiday))
+
+select name from mondStat
+join Passenger on psgId = id_psg
+where mondayIn > (select min(mondayIn) from mondStat)
