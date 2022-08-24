@@ -1,0 +1,38 @@
+select top(30) * from (
+
+select time, sum(vol) cnt from (
+
+select time, b_v_id, case when sum(b_vol) >= 85 and sum(b_vol) <= 170 then 1 else 0 end vol from utB 
+
+join
+
+	(select dateadd(second, cast(scnd as int), firstDate) time from
+
+	(
+		select min(lastDate) firstDate from (
+
+			select b_v_id, max(b_datetime) lastDate, sum(b_vol) vol from utb group by b_v_id) fullBalloon where vol = 255
+
+		) firstDate
+
+	cross join 
+		(select value as scnd from string_split('0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29',' ')) scnds
+
+	) times
+
+on b_datetime <= time
+group by time, b_v_id
+
+) third
+
+group by time
+
+
+union all
+
+select null as time, 0 as cnt from string_split('0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29',' ')
+
+
+) finish
+
+order by time desc
