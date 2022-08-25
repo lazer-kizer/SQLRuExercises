@@ -1,0 +1,12 @@
+with intervals as (
+select row_number() over (order by startB.b_datetime) id, 
+startB.b_datetime startDate, endB.b_datetime endDate from utb startB
+join utb endB on datediff(second, startB.b_datetime, endB.b_datetime) <=4
+where startB.b_datetime <= endB.b_datetime)
+
+, intervalsB as (
+select startDate, endDate, sum(b_vol) allVol from intervals
+join utb on b_datetime between startDate and endDate
+group by startDate, endDate)
+
+select * from intervalsB where allVol = (select max(allVol) from intervalsB)
