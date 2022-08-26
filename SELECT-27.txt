@@ -1,7 +1,6 @@
 with intervals as (
-select row_number() over (order by startB.b_datetime) id, 
-startB.b_datetime startDate, endB.b_datetime endDate from utb startB
-join utb endB on datediff(second, startB.b_datetime, endB.b_datetime) <=4
+select distinct startB.b_datetime startDate, endB.b_datetime endDate from utb startB
+join utb endB on datediff(second, startB.b_datetime, endB.b_datetime) <=3
 where startB.b_datetime <= endB.b_datetime)
 
 , intervalsB as (
