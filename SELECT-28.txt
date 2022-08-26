@@ -1,0 +1,32 @@
+with whiteSquares as (
+select b_q_id id from utb group by b_q_id having sum(b_vol) = 765)
+
+, emptyPaints as (
+select b_v_id id from utb group by b_v_id having sum(b_vol) = 255)
+
+, multiSquarePaints as (
+select b_v_id id, count(distinct b_q_id) squaresCount
+from utb join emptyPaints on id = b_v_id
+group by b_v_id having count(distinct b_q_id) > 2)
+
+, squaresToExclude as (select distinct utb.b_q_id id
+from utb join whiteSquares on utb.b_q_id = whiteSquares.id 
+left join emptyPaints on b_v_id = emptyPaints.id
+where emptyPaints.id is null)
+
+, squaresToInclude as (select distinct utb.b_q_id id
+from utb join whiteSquares on utb.b_q_id = whiteSquares.id 
+left join multiSquarePaints on b_v_id = multiSquarePaints.id
+where multiSquarePaints.id is not null)
+
+, squares as 
+(select id from squaresToInclude except select id from squaresToExclude)
+
+, result as 
+(select distinct b_q_id, b_v_id, q_name, v_name, squaresCount
+from squares join utb on squares.id = b_q_id
+join multiSquarePaints on multiSquarePaints.id = b_v_id
+join utq on q_id = squares.id
+join utv on v_id = multiSquarePaints.id)
+
+select q_name, v_name, squaresCount from result
