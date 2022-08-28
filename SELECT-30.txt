@@ -1,0 +1,19 @@
+2527 42
+
+select pass1.name, pass2.name from pass_in_trip first
+join pass_in_trip second
+on first.trip_no = second.trip_no
+and first.date = second.date
+and first.id_psg < second.id_psg
+and substring(trim(first.place),0, len(trim(first.place)) - 1) = 
+substring(trim(second.place),0, len(trim(second.place)) - 1)
+and 
+(
+(right(trim(first.place),1) in ('a','b') and right(trim(second.place),1) in ('a','b')) or
+(right(trim(first.place),1) in ('b','c') and right(trim(second.place),1) in ('b','c')) or
+(right(trim(first.place),1) in ('c','d') and right(trim(second.place),1) in ('c','d'))
+)
+join passenger pass1 on first.id_psg = pass1.id_psg
+join passenger pass2 on second.id_psg = pass2.id_psg
+group by first.id_psg, second.id_psg, pass1.name, pass2.name
+having count(*) > 1
