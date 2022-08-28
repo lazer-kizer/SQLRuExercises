@@ -1,23 +1,21 @@
-2712
-
 with customTrips as (select distinct trip.trip_no, town_from as townFrom, 
 town_to as townTo, id_comp, date + time_out as dateFrom,
 case when time_out > time_in then dateadd(day, 1, date) + time_in
 else date + time_in end as dateTo
 from trip join pass_in_trip on trip.trip_no = pass_in_trip.trip_no)
 
-, fromTrips as (select id_comp, trip_no, dateFrom, townFrom,
-rank() over (partition by dateFrom order by trip_no) rnk 
+, fromTrips as (select id_comp, trip_no, dateTo, townFrom,
+rank() over (partition by dateTo order by trip_no) rnk 
 from customTrips where townTo = 'Moscow')
 
-, toTrips as (select id_comp, trip_no, dateTo, townTo,
-rank() over (partition by dateTo order by trip_no) rnk 
+, toTrips as (select id_comp, trip_no, dateFrom, townTo,
+rank() over (partition by dateFrom order by trip_no) rnk 
 from customTrips where townFrom = 'Moscow')
 
 select fromCompany.name, townFrom, fromTrips.trip_no, 
-format(coalesce(fromTrips.dateFrom, toTrips.dateTo),'yyyy-MM-dd hh:mm'),
+format(coalesce(fromTrips.dateTo, toTrips.dateFrom),'yyyy-MM-dd HH:mm'),
 toTrips.trip_no, townTo, toCompany.name 
 from fromTrips full join toTrips
-on fromTrips.dateFrom = toTrips.dateTo and fromTrips.rnk = toTrips.rnk
+on fromTrips.dateTo = toTrips.dateFrom and fromTrips.rnk = toTrips.rnk
 left join company fromCompany on fromCompany.id_comp = fromTrips.id_comp
 left join company toCompany on toCompany.id_comp = toTrips.id_comp
