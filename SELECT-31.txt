@@ -1,0 +1,9 @@
+with ordered as (select b_datetime dt, b_q_id sqId, b_v_id pId, v_color color, 
+rank() over (partition by b_q_id order by b_datetime, b_v_id) rnk, v_name pName
+from utb join utV on utb.b_v_id = utv.v_id)
+
+select q_name, ord1.pName, ord2.pName, ord3.pName from ordered ord1
+join ordered ord2 on ord1.sqId = ord2.sqId and ord1.rnk + 1 = ord2.rnk
+join ordered ord3 on ord2.sqId = ord3.sqId and ord2.rnk + 1 = ord3.rnk
+join utQ on q_id = ord1.sqId
+where ord1.color = 'R' and ord2.color = 'G' and ord3.color = 'B'
