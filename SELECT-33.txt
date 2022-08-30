@@ -1,0 +1,30 @@
+with paintSquares as (select b_q_id squareId, v_color color, sum(b_vol) volume
+from utb join utv on utb.b_v_id = utv.v_id
+group by b_q_id, v_color)
+
+, redSquares as (select q_id squareId from utq 
+left join paintSquares on utq.q_id = paintSquares.squareId and color = 'R'
+where (volume >=0 and volume <= 50) OR squareId is null)
+
+, greenSquares as (select squareId from paintSquares 
+where color = 'G' and volume >=50 and volume <= 100)
+
+, blueSquares as (select squareId from paintSquares 
+where color = 'B' and volume >=100 and volume <= 150)
+
+, squares as (select red.squareId from redSquares red 
+join greenSquares green on red.squareId = green.squareId
+join blueSquares blue on green.squareId = blue.squareId)
+
+, paints as (select distinct b_v_id paintId, squareId 
+from squares join utb on b_q_id = squareId)
+
+, paintPairs as (select p1.paintId pId1, p2.paintId pId2, p1.squareId,
+count(*) over (partition by p1.paintId, p2.paintId) cnt from paints p1 
+join paints p2 on p1.squareId = p2.squareId and p1.paintId < p2.paintId)
+
+, excludeSquares as (select distinct squareId from paintPairs where cnt > 1)
+
+select * from squares
+except
+select * from excludeSquares
