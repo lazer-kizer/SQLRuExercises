@@ -1,0 +1,7 @@
+select b_q_id, string_agg(b_v_id,',') from 
+(select b_q_id, 
+rank() over (partition by b_q_id order by b_datetime, b_v_id) rnk,
+b_v_id
+from utb) targ
+where targ.rnk < 81
+group by b_q_id
