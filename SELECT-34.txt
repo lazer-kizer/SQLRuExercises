@@ -1,0 +1,22 @@
+with durationTrip as (select trip_no, name,
+datediff(minute, time_out, time_in) +
+case when time_out > time_in then 24*60 else 0 end duration
+from trip join company on company.id_comp = trip.id_comp)
+
+, psgCount as (select id_psg psgId, count(*) cnt, (count(*) + 1)/2 halfCnt 
+from pass_in_trip group by id_psg)
+
+, psgRnk as (
+select id_psg, trip_no, date, rank() 
+over (partition by id_psg order by date, trip_no) rnk
+from pass_in_trip)
+
+, psgGroup as (select psgId, trip_no, rnk, halfCnt, cnt,
+case when rnk <= halfCnt then 1 else 2 end groupNo
+from psgRnk join psgCount on psgId = id_psg)
+
+select psgId, groupNo, halfCnt firstCnt, cnt-halfcnt secondCnt, 
+sum(duration) duration, max(name), max(durationTrip.trip_no) 
+from psgGroup join durationTrip 
+on psgGroup.trip_no = durationTrip.trip_no
+group by psgId, groupNo, halfCnt, cnt-halfcnt
