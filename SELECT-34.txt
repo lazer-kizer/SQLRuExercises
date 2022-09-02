@@ -1,57 +1,33 @@
-////////////почему то обрубает мой скрипт!
-
-with durationTrip as (select trip_no, name,
-datediff(minute, time_out, time_in) +
-case when time_out > time_in then 24*60 else 0 end duration
-from trip join company on company.id_comp = trip.id_comp)
-
-, psgCount as (
-select id_psg psgId, count(*) cnt, (count(*) + 1)/2 halfCnt 
-from pass_in_trip group by id_psg)
-
-, psgRnk as (
-select id_psg, trip_no, date, rank() 
-over (partition by id_psg order by date, trip_no) rnk
-from pass_in_trip)
-
-, psgGroup as (select psgId, trip_no, rnk, halfCnt, cnt,
-case when rnk <= halfCnt then 1 else 2 end groupNo
-from psgRnk join psgCount on psgId = id_psg)
-
-, psgAggr as (select psgId, passenger.name as psgName,
-groupNo, halfCnt firstCnt, cnt-halfcnt secondCnt, 
-sum(duration) duration, max(durationTrip.name) planeName, max(durationTrip.trip_no) tripNo 
-from psgGroup join durationTrip 
-on psgGroup.trip_no = durationTrip.trip_no
-join passenger on psgId = id_psg
-group by psgId, passenger.name, groupNo, halfCnt, cnt-halfcnt)
-
-, psgAggrWithHours as (select *, duration / 60 as durationHours, duration % 60 as durationMinutes from psgAggr)
-
-, psgAggrWithHoursString as (select *,
-case when durationHours = 0 then null else concat(durationHours, 'hrs.') end hoursString,
-case when durationMinutes = 0 then null else concat(durationMinutes, 'min.') end minString from psgAggrWithHours)
-select *, case when hoursString = null or minstring = null then coalesce(hoursstring,minstring) else concat(hoursstring,'; ', minstring) end hours min from psgAggrWithHoursString
-
-
-
-
-//////////////////////
 with cntTrips as (select id_psg, count(*) cnt from pass_in_trip group by id_psg)
 
 , rankTrips as (
 select pass_in_trip.*, cnt,
-rank() over (partition by cntTrips.id_psg order by date, trip_no) rnk 
-from pass_in_trip join cntTrips on cntTrips.id_psg = pass_in_trip.id_psg)
+row_number() over (partition by cntTrips.id_psg order by date, company.name, pass_in_trip.trip_no) rnk 
+from pass_in_trip join cntTrips on cntTrips.id_psg = pass_in_trip.id_psg
+join trip on trip.trip_no = pass_in_trip.trip_no
+join company on company.id_comp = trip.id_comp)
 
 , groups as (select *, case when (cnt + 1) / 2 >= rnk then 1 else 2 end groupId from rankTrips)
 
-, fullInfo as (select groups.*, name, datediff(minute, time_out, time_in) + case when time_out > time_in then 24*60 else 0 end duration 
+, fullInfo as (select groups.*, name, datediff(minute, time_out, time_in) + case when time_out > time_in then 24*60 else 0 end duration,
+' .hrs' hrs, ', ' delim, ' .min' min 
 from groups join trip on groups.trip_no = trip.trip_no
 join company on company.id_comp = trip.id_comp)
 
-select id_psg, groupId, concat(sum(duration) / 60, '.hrs', sum(duration) % 60) duration, 
+, fullInfoWithStr as (select id_psg, groupId, count(*) cnt, sum(duration) / 60 hoursDur, sum(duration) % 60 minDur, max(name) planeName, max(trip_no) tripNo, 
+' hrs.' hrs, ', ' delim, ' min.' min
+from fullInfo group by id_psg, groupId)
 
+, groupInfo as (select id_psg, groupId, 
+case when cnt > 1 then
+concat(
+case when hoursDur <> 0 then concat(hoursDur, hrs) else '' end,
+case when hoursDur <> 0 and minDur <> 0 then delim else '' end,
+case when minDur <> 0 then concat(minDur, min) else '' end)
+else concat(trim(planeName), ', ', tripNo) end resDur
+from fullInfoWithStr)
 
-max(name) planeName, max(trip_no) tripNo from fullInfo
-group by id_psg, groupId
+select name, g1.resDur, isnull(g2.resDur,'')
+from passenger join groupInfo g1 on g1.id_psg = passenger.id_psg
+left join groupInfo g2 on g1.id_psg = g2.id_psg and g1.groupId = 1 and g2.groupId = 2
+where g1.groupId = 1
