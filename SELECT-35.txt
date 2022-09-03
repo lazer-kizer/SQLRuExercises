@@ -1,0 +1,16 @@
+with ranked as (select rank() over (order by v_id desc) rnk, * from utv)
+
+, toggles as (select r1.rnk rnk1, r2.rnk rnk2, r1.v_id, r1.v_name, 
+case when r1.rnk % r2.rnk = 0 then 1 else 0 end as toggle 
+from ranked r1 cross join ranked r2
+where r1.rnk >= r2.rnk)
+
+select v_name
+from toggles
+group by rnk1, v_id, v_name
+having sum(toggle) % 2 = 1
+
+
+--2121
+--1946
+-- 175
