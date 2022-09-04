@@ -1,0 +1,22 @@
+with minDate as (select dateadd(year, 1, max(b_datetime)) defaultDate from utb)
+
+, t1 as (select v_id, isnull(b_datetime, defaultDate) b_datetime,
+rank() over (partition by utv.v_id order by b_datetime) rnk
+from mindate join utv on 1 = 1 left join utb on utv.v_id = utb.b_v_id)
+
+, t2 as (select rank() over (order by b_datetime, v_id desc) rnk, v_id, b_datetime from t1 where rnk = 1)
+
+, t3 as (select rnk, (rnk - 1) / 4 + 1 grpNo, 
+((rnk - 1) % 4) + 1 orderNo, v_id from t2)
+
+, t4 as (select p1.grpNo, 
+p1.v_id as v1, p2.v_id as v2, p3.v_id as v3, p4.v_id as v4 from t3 p1
+left join t3 p2 on p1.grpNo = p2.grpNo and p1.orderNo = 1 and p2.orderNo = 2
+left join t3 p3 on p2.grpNo = p3.grpNo and p2.orderNo = 2 and p3.orderNo = 3
+left join t3 p4 on p3.grpNo = p4.grpNo and p3.orderNo = 3 and p4.orderNo = 4
+where p1.orderNo = 1)
+
+,t5 as (select b_v_id, 255 - sum(b_vol) leftVol from utb group by b_v_id)
+
+select * from t4
+--сджойнить t4 с 4 таблицами t5
