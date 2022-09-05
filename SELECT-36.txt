@@ -16,7 +16,58 @@ left join t3 p3 on p2.grpNo = p3.grpNo and p2.orderNo = 2 and p3.orderNo = 3
 left join t3 p4 on p3.grpNo = p4.grpNo and p3.orderNo = 3 and p4.orderNo = 4
 where p1.orderNo = 1)
 
-,t5 as (select b_v_id, 255 - sum(b_vol) leftVol from utb group by b_v_id)
+,t5 as (select v_id b_v_id, 255 - ISNULL(sum(b_vol),0) leftVol 
+from utv left join utb on v_id = b_v_id
+group by utv.v_id)
 
-select * from t4
---сджойнить t4 с 4 таблицами t5
+, t6 as (select grpNo groupNo, cast(vol1.leftVol as bigint) vol1, 
+cast(ISNULL(vol2.leftVol,0) as bigint) vol2, 
+cast(ISNULL(vol3.leftVol,0) as bigint) vol3, 
+cast(ISNULL(vol4.leftVol,0) as bigint) vol4 
+from t4
+left join t5 as vol1 on t4.v1 = vol1.b_v_id
+left join t5 as vol2 on t4.v2 = vol2.b_v_id
+left join t5 as vol3 on t4.v3 = vol3.b_v_id
+left join t5 as vol4 on t4.v4 = vol4.b_v_id)
+
+, t7 as (select max(groupNo) maxGroupNo from t6)
+
+, t8 as (select groupNo, concat(vol1,'.',vol2,'.',vol3,'.',vol4) ipAddress,
+vol1, vol2, vol3, vol4, 
+(select maxGroupNo from t7) maxGroupNo
+from t6)
+
+, t9 as (select 
+temp1.groupNo grp1, temp2.groupNo grp2, 
+temp1.ipAddress ip1, temp2.ipAddress ip2,
+temp1.vol1 * 256 * 256 * 256 + 
+temp1.vol2 * 256 * 256 +
+temp1.vol3 * 256 +
+temp1.vol4 sum1,
+
+temp2.vol1 * 256 * 256 * 256 +
+temp2.vol2 * 256 * 256 +
+temp2.vol3 * 256 +
+temp2.vol4 sum2
+from t8 temp1 join t8 temp2
+on temp1.groupNo + 1 = temp2.groupNo
+
+union all
+
+select
+temp1.groupNo grp1, temp2.groupNo grp2,
+temp1.ipAddress ip1, temp2.ipAddress ip2,
+temp1.vol1 * 256 * 256 * 256 + 
+temp1.vol2 * 256 * 256 +
+temp1.vol3 * 256 +
+temp1.vol4 sum1,
+
+temp2.vol1 * 256 * 256 * 256 +
+temp2.vol2 * 256 * 256 +
+temp2.vol3 * 256 +
+temp2.vol4 sum2
+
+from t8 temp1 join t8 temp2 
+on temp1.groupNo = temp1.maxGroupNo and temp2.groupNo = 1)
+
+select ip1, ip2, abs(sum1-sum2) + 1 from t9
