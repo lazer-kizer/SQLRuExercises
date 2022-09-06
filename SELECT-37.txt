@@ -1,0 +1,23 @@
+with g_speed as (select top 1 speed from laptop 
+group by speed order by count(*) desc, speed desc)
+, g_ram as (select top 1 ram from laptop 
+group by ram order by count(*) desc, ram desc)
+, g_hd as (select top 1 hd from laptop 
+group by hd order by count(*) desc, hd desc)
+, g_price as (select top 1 price from laptop 
+group by price order by count(*) desc, price desc)
+, g_screen as (select top 1 screen from laptop 
+group by screen order by count(*) desc, screen desc)
+
+select * from g_speed 
+cross join g_ram 
+cross join g_hd 
+cross join g_price 
+cross join g_screen
+
+
+select * from g_speed 
+union select * from g_ram 
+union select * from g_hd 
+union select * from g_price 
+union select * from g_screen
