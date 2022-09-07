@@ -1,23 +1,40 @@
-with g_speed as (select top 1 speed from laptop 
+--1833
+--1769
+    64
+
+with g_speed as (select top 1 speed from laptop where speed is not null
 group by speed order by count(*) desc, speed desc)
-, g_ram as (select top 1 ram from laptop 
+, g_ram as (select top 1 ram from laptop where ram is not null
 group by ram order by count(*) desc, ram desc)
-, g_hd as (select top 1 hd from laptop 
+, g_hd as (select top 1 hd from laptop where hd is not null
 group by hd order by count(*) desc, hd desc)
-, g_price as (select top 1 price from laptop 
+, g_price as (select top 1 price from laptop where price is not null
 group by price order by count(*) desc, price desc)
-, g_screen as (select top 1 screen from laptop 
+, g_screen as (select top 1 screen from laptop where screen is not null
 group by screen order by count(*) desc, screen desc)
 
-select * from g_speed 
-cross join g_ram 
-cross join g_hd 
-cross join g_price 
-cross join g_screen
+, union1 as (select speed as vl from g_speed 
+union select ram as vl from g_ram
+union select hd as vl from g_hd
+union select price as vl from g_price
+union select screen as vl from g_screen)
+
+, union2 as (select speed, ram, hd, price, screen from g_speed 
+left join (select ram from g_ram) as t1 on 1 = 1
+left join (select hd from g_hd) as t2 on 1 = 1 
+left join (select price from g_price) as t3 on 1 = 1 
+left join (select screen from g_screen) as t4 on 1 = 1)
+
+, aggr1 as (select string_agg(vl,',') within group (order by vl asc) aggr from union1)
 
 
-select * from g_speed 
-union select * from g_ram 
-union select * from g_hd 
-union select * from g_price 
-union select * from g_screen
+select code, aggr,
+case when laptop.speed in (select * from union1) then 1 else 0 end +
+case when laptop.ram in (select * from union1) then 1 else 0 end +
+case when laptop.hd in (select * from union1) then 1 else 0 end +
+case when laptop.price in (select * from union1) then 1 else 0 end +
+case when laptop.screen in (select * from union1) then 1 else 0 end occurs,
+ 
+laptop.speed, laptop.ram, laptop.hd, laptop.price, laptop.screen 
+
+from laptop cross join aggr1 cross join union2
