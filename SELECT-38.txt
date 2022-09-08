@@ -1,0 +1,59 @@
+with whiteSquares as (
+select b_q_id from utb group by b_q_id having sum(b_vol) = 255 * 3)
+
+, takePartForWhite as (select distinct b_v_id 
+from utb join whiteSquares on utb.b_q_id = whiteSquares.b_q_id)
+
+, notTakePartForWhite as (select v_id b_v_id from utv 
+except select * from takePartForWhite)
+
+, commonSquares as (
+select distinct b_q_id from notTakePartForWhite join utb 
+on utb.b_v_id = notTakePartForWhite.b_v_id
+intersect
+select distinct b_q_id from takePartForWhite join utb 
+on utb.b_v_id = takePartForWhite.b_v_id)
+
+, takePartForCommon as (select distinct b_v_id 
+from utb join commonSquares on utb.b_q_id = commonSquares.b_q_id)
+
+, notTakePartForWhiteAndCommon as (select v_id b_v_id from utv 
+except select * from takePartForWhite
+except select * from takePartForCommon)
+
+, greenSquares as (select distinct b_q_id 
+from utb join utv on utb.b_v_id = utv.v_id where v_color = 'g')
+
+, notGreenSquares as 
+(select q_id b_q_id from utq except select * from greenSquares)
+
+, redData as
+(select q_id, format(sum(coalesce(b_vol,0)),'000') red
+from utb join utv on utv.v_id = utb.b_v_id 
+right join utq on utq.q_id = utb.b_q_id and v_color = 'r'
+group by q_id)
+
+, greenData as
+(select q_id, format(sum(coalesce(b_vol,0)),'000') green
+from utb join utv on utv.v_id = utb.b_v_id 
+right join utq on utq.q_id = utb.b_q_id and v_color = 'g'
+group by q_id)
+
+, blueData as
+(select q_id, format(sum(coalesce(b_vol,0)),'000') blue
+from utb join utv on utv.v_id = utb.b_v_id 
+right join utq on utq.q_id = utb.b_q_id and v_color = 'b'
+group by q_id)
+
+select distinct utv.v_name, utq.q_name, 
+concat('(',red,',',green,',',blue,')') info
+from utb
+join notGreenSquares 
+on utb.b_q_id = notGreenSquares.b_q_id
+join notTakePartForWhiteAndCommon 
+on utb.b_v_id = notTakePartForWhiteAndCommon.b_v_id
+join utq on utq.q_id = utb.b_q_id
+join utv on utv.v_id = utb.b_v_id
+join redData on utq.q_id = redData.q_id
+join greenData on utq.q_id = greenData.q_id
+join blueData on utq.q_id = blueData.q_id
