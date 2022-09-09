@@ -45,7 +45,8 @@ from utb join utv on utv.v_id = utb.b_v_id
 right join utq on utq.q_id = utb.b_q_id and v_color = 'b'
 group by q_id)
 
-select distinct utv.v_name, utq.q_name, 
+, dists as (
+select distinct utv.v_id, utq.q_id, utv.v_name, utq.q_name, 
 concat('(',red,',',green,',',blue,')') info
 from utb
 join notGreenSquares 
@@ -57,3 +58,6 @@ join utv on utv.v_id = utb.b_v_id
 join redData on utq.q_id = redData.q_id
 join greenData on utq.q_id = greenData.q_id
 join blueData on utq.q_id = blueData.q_id
+)
+
+select v_name, q_name, info from dists
