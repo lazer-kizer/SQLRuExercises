@@ -1,0 +1,18 @@
+-- надо так сделать, чтобы маршруты совпадали! Вау. Все верно
+
+with durations as (select id_comp, trip.trip_no,
+case when time_out < time_in then datediff(minute, time_out, time_in)
+else  datediff(minute, time_out, dateadd(day, 1, time_in)) end duration
+from trip join pass_in_trip on trip.trip_no = pass_in_trip.trip_no)
+
+, rankedDurations as (select id_comp, trip_no, 
+rank() over (order by duration desc) rnk from durations)
+
+, longTrips as (select distinct id_comp, trip_no from rankedDurations where rnk = 1)
+
+
+
+select * from pass_in_trip join trip on pass_in_trip.trip_no = trip.trip_no
+
+select * from longTrips left join pass_in_trip
+on longTrips.trip_no = pass_in_trip.trip_no
