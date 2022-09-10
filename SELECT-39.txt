@@ -1,18 +1,23 @@
--- надо так сделать, чтобы маршруты совпадали! Вау. Все верно
-
-with durations as (select id_comp, trip.trip_no,
+with durations as (
+select id_comp, trip_no, town_from, town_to,
 case when time_out < time_in then datediff(minute, time_out, time_in)
 else  datediff(minute, time_out, dateadd(day, 1, time_in)) end duration
-from trip join pass_in_trip on trip.trip_no = pass_in_trip.trip_no)
+from trip )
 
-, rankedDurations as (select id_comp, trip_no, 
+, rankedDurations as (select id_comp, trip_no, town_from, town_to, 
 rank() over (order by duration desc) rnk from durations)
 
-, longTrips as (select distinct id_comp, trip_no from rankedDurations where rnk = 1)
+, longTrips as (select distinct id_comp, trip_no, town_from, town_to 
+from rankedDurations where rnk = 1)
 
+, pass as (select tr.id_comp, ps.trip_no, ps.id_psg, date 
+from pass_in_trip ps join trip tr on ps.trip_no = tr.trip_no
+join longTrips lt
+on (lt.town_from = tr.town_from and lt.town_to = tr.town_to
+or lt.town_from = tr.town_to and lt.town_to = tr.town_from)
+and lt.id_comp = tr.id_comp
+group by tr.id_comp, ps.trip_no, ps.id_psg, date)
 
-
-select * from pass_in_trip join trip on pass_in_trip.trip_no = trip.trip_no
-
-select * from longTrips left join pass_in_trip
-on longTrips.trip_no = pass_in_trip.trip_no
+select name, count(*)
+from pass join company on pass.id_comp = company.id_comp
+group by company.id_comp, name
