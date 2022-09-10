@@ -1,0 +1,5 @@
+with t1 as (select date, sum(out) allOut from outcome group by date)
+
+, t2 as (select point, date, sum(out) pointOut from outcome group by point, day)
+
+select * from t2
