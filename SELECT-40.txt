@@ -1,5 +1,20 @@
-with t1 as (select date, sum(out) allOut from outcome group by date)
+Следует учитывать таблицу Income.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
-, t2 as (select point, date, sum(out) pointOut from outcome group by point, day)
+with t1 as (select date, sum(out) allSm from outcome group by date)
 
-select * from t2
+, t2 as (select point, date, sum(out) sm from outcome group by point, date)
+
+, t3 as (select point, date from
+(select distinct date from outcome) dates
+cross join
+(select distinct point from outcome) points)
+
+, t4 as (select t3.date, t3.point, 
+coalesce(format(round(t2.sm / allSm * 100, 0), '##'),0) total
+from t3 join t1 on t3.date = t1.date
+left join t2 on t3.point = t2.point and t3.date = t2.date)
+
+select format(date, 'yyyy-MM-dd'), 
+string_agg(total, ' ') within group (order by point) from t4
+group by date
