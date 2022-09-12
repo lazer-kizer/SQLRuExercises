@@ -1,6 +1,3 @@
-Следует учитывать таблицу Income.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-
 with t1 as (select date, sum(out) allSm from outcome group by date)
 
 , t2 as (select point, date, sum(out) sm from outcome group by point, date)
@@ -8,7 +5,8 @@ with t1 as (select date, sum(out) allSm from outcome group by date)
 , t3 as (select point, date from
 (select distinct date from outcome) dates
 cross join
-(select distinct point from outcome) points)
+(select distinct point from outcome
+union select distinct point from income) points)
 
 , t4 as (select t3.date, t3.point, 
 coalesce(format(round(t2.sm / allSm * 100, 0), '##'),0) total
