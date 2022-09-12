@@ -1,0 +1,19 @@
+with towns as (select distinct town_from from trip
+union select distinct town_to from trip)
+
+, trips as (select distinct
+case when town_to > town_from then town_from else town_to end firstTown,
+case when town_to < town_from then town_from else town_to end secondTown
+from trip)
+
+, t1 as (select town from
+(select firstTown as town, count(distinct secondTown) cnt from trips
+group by firstTown
+union all
+select secondTown as town, count(distinct firstTown) cnt from trips
+group by secondTown) t1
+group by town having sum(cnt) > 1)
+
+select distinct town_from, town_to from trip
+where town_from not in (select * from t1)
+and town_to not in (select * from t1)
