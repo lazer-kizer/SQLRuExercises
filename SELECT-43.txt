@@ -1,0 +1,10 @@
+with t1 as (select b_v_id, 
+max(format(b_datetime,'yyyy-MM-dd')) date, 
+sum(b_vol) vol from utb group by b_v_id)
+
+select date, count(*) from t1
+where vol = 255
+group by date
+
+
+надо использовать оконную функцию, и брать кумулятивное значение и от него остаток на 5! Вау, гениально!
