@@ -1,0 +1,24 @@
+with durations as (select trip_no, case 
+when time_out < time_in then datediff(minute,time_out,time_in)
+else datediff(minute,time_out,dateadd(day,1,time_in)) end duration
+from trip)
+
+, t1 as (select 
+id_psg, sum(duration) allDuration, rank() over (order by sum(duration) desc) rnk
+from durations join pass_in_trip on pass_in_trip.trip_no = durations.trip_no
+group by id_psg)
+
+, t2 as (select id_psg, allDuration from t1 where rnk = 1)
+
+, t3 as (select id_psg, id_comp, 
+rank() over (partition by id_psg order by sum(duration) desc) rnk
+from durations join pass_in_trip on pass_in_trip.trip_no = durations.trip_no
+join trip on pass_in_trip.trip_no = trip.trip_no
+group by id_psg, id_comp)
+
+, t4 as (select id_psg, id_comp from t3 where rnk = 1)
+
+select passenger.name, allDuration, company.name 
+from t2 join t4 on t2.id_psg = t4.id_psg
+join passenger on passenger.id_psg = t2.id_psg
+join company on company.id_comp = t4.id_comp
