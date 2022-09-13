@@ -14,6 +14,12 @@ select secondTown as town, count(distinct firstTown) cnt from trips
 group by secondTown) t1
 group by town having sum(cnt) > 1)
 
-select distinct town_from, town_to from trip
+, t2 as (select distinct town_from, town_to,
+case when town_to > town_from then town_from else town_to end firstTown,
+case when town_to < town_from then town_from else town_to end secondTown
+from trip)
+
+select min(town_from), max(town_to) from t2
 where town_from not in (select * from t1)
 and town_to not in (select * from t1)
+group by firstTown, secondTown
