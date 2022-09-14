@@ -2,9 +2,22 @@ with t1 as (select b_v_id,
 max(format(b_datetime,'yyyy-MM-dd')) date, 
 sum(b_vol) vol from utb group by b_v_id)
 
-select date, count(*) from t1
-where vol = 255
-group by date
+, t2 as (select date, count(*) dayCnt,
+sum(count(*)) over (order by date rows unbounded preceding) cumulCnt
+from t1 where vol = 255 group by date)
 
+, t3 as (select *, case 
+when dayCnt % 5 = 0 and cumulCnt % 5 = 0 then dayCnt / 5
+when dayCnt % 5 <> 0 and cumulCnt % 5 = 0 then dayCnt / 5 + 1 
+else (dayCnt + (cumulCnt - dayCnt) % 5) / 5 end cars from t2)
 
-надо использовать оконную функцию, и брать кумулятивное значение и от него остаток на 5! Вау, гениально!
+, t4 as (select 'empty_rest' title, max(cumulCnt) % 5 rest from t3)
+
+, t5 as (select 'nonempty_rest' title, count(b_v_id) rest from (select b_v_id
+from utb group by b_v_id having sum(b_vol) < 255) temp)
+
+select date, cars from t3 where cars > 0
+union
+select * from t4
+union
+select * from t5
