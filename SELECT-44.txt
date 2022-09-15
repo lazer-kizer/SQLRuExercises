@@ -1,3 +1,16 @@
-string split alphabet
+with letters as (select distinct value as letter from 
+string_split('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' '))
 
-select case when 'abcd' like '%m%' then 1 else 0 end from ships
+, t0 as (select name from ships union select ship as name from outcomes)
+
+, t1 as (select name, string_agg(letter,'') within group (order by letter) letters
+from t0 
+cross join letters
+where charIndex(letter,name) > 0
+group by name)
+
+select distinct
+case when a.name < b.name then a.name else b.name end,
+case when a.name > b.name then a.name else b.name end
+from t1 a join t1 b
+on a.name <> b.name and a.letters = b.letters
