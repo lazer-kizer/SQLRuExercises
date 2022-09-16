@@ -1,0 +1,20 @@
+with letters as (select distinct value as letter from 
+string_split('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' '))
+
+, t0 as (select name from ships union select ship as name from outcomes)
+
+, t1 as (select distinct value name 
+from ships cross apply string_split(name, ' '))
+
+, t2 as (select name, letter, 
+len(replace(name,' ','')) - len(replace(replace(name,' ',''),letter,'')) occurs
+from t1 cross join letters
+where charIndex(letter,name) > 0)
+
+, t3 as (select name, 
+string_agg(concat(letter,occurs),'') within group (order by letter) letters 
+from t2  group by name)
+
+select distinct a.name, b.name
+from t3 a join t3 b
+on a.name <> b.name and a.letters = b.letters
