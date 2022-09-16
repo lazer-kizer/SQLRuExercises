@@ -1,0 +1,4 @@
+SELECT CHARINDEX('t', 'Test One' COLLATE Latin1_General_CS_AS) FROM ships
+
+
+select * from string_split('1 2 3', ' ')
