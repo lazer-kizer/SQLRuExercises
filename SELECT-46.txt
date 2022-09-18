@@ -1,4 +1,3 @@
-SELECT CHARINDEX('t', 'Test One' COLLATE Latin1_General_CS_AS) FROM ships
-
-
-select * from string_split('1 2 3', ' ')
+select name, 
+replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(name COLLATE Latin1_General_CS_AS,'&',''),'@',''),'#',''),'$',''),'%',''),'''',''),'/',''),'|',''),'\',''),'`',''),'~',''),'^',''),'(',''),')',''),'[',''),']',''),'{',''),'}',''),'"',''),':',''),'*',''),'_',''),'-',''),'+',''),'=',''),'?',''),'!',''),'0',''),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'a',''),'b',''),'c',''),'d',''),'e',''),'f',''),'g',''),'h',''),'i',''),'j',''),'k',''),'l',''),'m',''),'n',''),'o',''),'p',''),'q',''),'r',''),'s',''),'t',''),'u',''),'v',''),'w',''),'x',''),'y',''),'z',''),' ','')
+from ships
