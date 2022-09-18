@@ -1,0 +1,23 @@
+with t1 as (select *, 
+dense_rank() over (partition by b_q_id order by b_datetime) rnk,
+sum(
+case when v_color = 'R' then b_vol * 1000 * 1000
+when v_color = 'G' then b_vol * 1000
+else b_vol end
+) over (partition by b_q_id order by b_datetime rows between unbounded preceding and current row) pln
+from utb join utv on v_id = b_v_id)
+
+, t2 as (select b_q_id, rnk, max(pln) pln from t1 group by b_q_id, rnk)
+
+, t3 as (select *, 
+'rank' + cast(rnk as varchar(255)) + 'color' + cast(pln as varchar(255)) as total 
+from t2)
+
+, t4 as (select b_q_id, 
+string_agg(total,'') within group (order by rnk) pln
+from t3 group by b_q_id)
+
+select q1.q_name, q2.q_name from t4 u1
+join t4 u2 on u1.pln = u2.pln and u1.b_q_id < u2.b_q_id
+join utq q1 on u1.b_q_id = q1.q_id
+join utq q2 on u2.b_q_id = q2.q_id
