@@ -1,3 +1,25 @@
-кроссджойнить три раза на себя все символы и применять PATINDEX
-джойн
-кроссджойнить три раза на себя все символы и применять PATINDEX
+select distinct t1.word, t2.word from
+
+(select name as word, comb from ships
+join 
+(select distinct concat(t1.value, t2.value, t3.value) as comb from string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t1 cross join
+string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t2 cross join
+string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t3) comb
+on charindex(comb,name) <> 0) t1
+
+join
+
+(select name as word, comb from ships
+join 
+(select distinct concat(t1.value, t2.value, t3.value) as comb from string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t1 cross join
+string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t2 cross join
+string_split
+('& @ # $ % '' / | \ ` ~ ^ ( ) [ ] { } " : * _ - + = ? ! 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z', ' ') t3) comb
+on charindex(comb,name) <> 0) t2
+
+on t1.comb = t2.comb and t1.word < t2.word
