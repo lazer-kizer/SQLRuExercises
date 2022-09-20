@@ -1,0 +1,63 @@
+with trips as (select trip_no, time_in, time_out,
+case when time_in > time_out then datediff(minute, time_out, time_in)
+else datediff(minute, time_out, dateadd(day,1,time_in)) end duration
+from trip join company on trip.id_comp = company.id_comp 
+where company.name = 'British_aw')
+
+, t1 as (select rank() over (order by sum(duration) desc, passenger.id_psg) rnk,
+passenger.id_psg, passenger.name, 
+count(*) cnt, sum(duration) dur, min(date + time_out) mn, 
+max(dateadd(day,case when time_in < time_out then 1 else 0 end,date + time_in)) mx
+from pass_in_trip join trips on trips.trip_no = pass_in_trip.trip_no
+join passenger on passenger.id_psg = pass_in_trip.id_psg
+group by passenger.id_psg, passenger.name)
+
+, t2 as (select * from t1 where rnk < 6)
+
+select '1.name' as har, [1],[2],[3],[4],[5] 
+from (select rnk, [name] from t2) as src pivot
+(max(name) for rnk in ([1],[2],[3],[4],[5])) as pvt
+
+union
+
+select '2.time' as har, 
+cast([1] as varchar(max)),
+cast([2] as varchar(max)),
+cast([3] as varchar(max)),
+cast([4] as varchar(max)),
+cast([5] as varchar(max))
+from (select rnk, [dur] from t2) as src pivot
+(max(dur) for rnk in ([1],[2],[3],[4],[5])) as pvt
+
+union
+
+select '3.cou' as har, 
+cast([1] as varchar(max)),
+cast([2] as varchar(max)),
+cast([3] as varchar(max)),
+cast([4] as varchar(max)),
+cast([5] as varchar(max))
+from (select rnk, cnt from t2) as src pivot
+(max(cnt) for rnk in ([1],[2],[3],[4],[5])) as pvt
+
+union
+
+select '4.time_out' as har, 
+format([1],'yyyy-MM-dd HH:mm:ss'),
+format([2],'yyyy-MM-dd HH:mm:ss'),
+format([3],'yyyy-MM-dd HH:mm:ss'),
+format([4],'yyyy-MM-dd HH:mm:ss'),
+format([5],'yyyy-MM-dd HH:mm:ss')
+from (select rnk, mn from t2) as src pivot
+(max(mn) for rnk in ([1],[2],[3],[4],[5])) as pvt
+
+union
+
+select '5.time_in' as har, 
+format([1],'yyyy-MM-dd HH:mm:ss'),
+format([2],'yyyy-MM-dd HH:mm:ss'),
+format([3],'yyyy-MM-dd HH:mm:ss'),
+format([4],'yyyy-MM-dd HH:mm:ss'),
+format([5],'yyyy-MM-dd HH:mm:ss')
+from (select rnk, mx from t2) as src pivot
+(max(mx) for rnk in ([1],[2],[3],[4],[5])) as pvt
