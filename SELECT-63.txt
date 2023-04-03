@@ -1,0 +1,24 @@
+with p1 as (select id_comp, count(distinct plane) cnt from trip group by id_comp)
+
+, p2 as (
+select t1.id_comp compid1, t2.id_comp compid2, count(distinct t1.plane) cnt from trip t1 
+join trip t2
+on t1.plane = t2.plane and t1.id_comp <> t2.id_comp
+group by t1.id_comp, t2.id_comp)
+
+, p3 as (select distinct p1.id_comp from p1 join p2
+on p1.id_comp = p2.compid1 and p1.id_comp <> p2.compid2 and p1.cnt = p2.cnt)
+
+, t3 as (select *,
+case when time_out < time_in then datediff(minute,time_out,time_in) 
+else datediff(minute, time_out, dateadd(day,1,time_in)) end duration
+from trip)
+
+, t4 as (select id_comp, duration,
+rank() over (partition by id_comp order by duration) rnk from t3)
+
+, t5 as (select distinct id_comp, duration from t4 where rnk = 1)
+
+select company.name, duration from t5 
+join company on t5.id_comp = company.id_comp
+where t5.id_comp in (select * from p3)
