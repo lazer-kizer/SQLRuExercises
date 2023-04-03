@@ -1,0 +1,6 @@
+select distinct t3.value
+from passenger
+cross apply string_split(name, ' ') t1
+cross apply string_split(t1.value, '.') t2
+cross apply string_split(t2.value, '-') t3
+where t3.value <> '' and len(t3.value) > 2
