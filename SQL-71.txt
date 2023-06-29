@@ -1,0 +1,41 @@
+select distinct
+  max(case when finish = 1 then 0 when start = 1 then x  when samePrevPoint = 1 then prevX else 0 end),
+  max(case when finish = 1 then x else 0 end)   ,
+  replace(format(sum(sq),'N2'),',','')
+from
+  (
+    select
+      *                                                                                  ,
+      coalesce(sum(finish) over (order by x ROWS BETWEEN UNBOUNDED PRECEDING AND 1 preceding), 0) rect ,
+      (prevMaxY - prevMinY + maxY - minY) * 1.0 / 2 * width sq,
+	  case when lag(start) over (order by x) = 1 and lag(finish) over (order by x) = 1 then 1 else 0 end samePrevPoint,
+	  lag(x) over (order by x) prevX
+    from
+      (
+        select
+          b_q_id x        ,
+          min(b_v_id) minY,
+          max(b_v_id) maxY,
+          case
+          when
+            (lag(b_q_id) over (order by b_q_id) is NULL or min(b_v_id) = max(b_v_id))
+			and lead(min(b_v_id)) over (order by b_q_id) <> lead(max(b_v_id)) over (order by b_q_id)
+          then
+            1
+          else
+            0
+          end
+        start,
+        case
+        when
+          (lead(b_q_id) over (order by b_q_id) is NULL or min(b_v_id) = max(b_v_id))
+		  and lag(min(b_v_id)) over (order by b_q_id) <> lag(max(b_v_id)) over (order by b_q_id)
+        then
+          1
+        else
+          0
+        end finish                                                  ,
+        b_q_id - (lag(b_q_id, 1, null) over (order by b_q_id)) width,
+        lag(min(b_v_id)) over (order by b_q_id) prevMinY            ,
+        lag(max(b_v_id)) over (order by b_q_id) prevMaxY            ,
+        lag(b_q_id, 1, null) over (order by b_q_id) prevMaxX from utb group by b_q_id ) t1 ) t2 group by rect having sum(sq) > 0
