@@ -1,0 +1,54 @@
+with travels_1 as (select trip_no, time_out, town_from, town_to,
+case when time_out > time_in then dateadd(day, 1, time_in) else time_in end time_in
+from trip),
+
+travels_2 as (select trip_no, dateadd(day, 1, time_out) time_out, town_from, town_to,
+case when time_out > time_in then dateadd(day, 2, time_in) else dateadd(day, 1, time_in) end time_in
+from trip),
+
+travels_3 as (select * from travels_1 union select * from travels_2),
+
+times_1 as (select distinct t1.trip_no trip1, t2.trip_no trip2,
+case 
+when t1.time_out < t2.time_out then t1.time_out else t2.time_out end t_s_1,
+case 
+when t1.time_out < t2.time_out then t2.time_out else t1.time_out end t_s_2,
+case 
+when t1.time_out < t2.time_out then t1.time_in else t2.time_in end t_e_1,
+case 
+when t1.time_out < t2.time_out then t2.time_in else t1.time_in end t_e_2
+
+from travels_3 t1
+join travels_3 t2
+on t1.town_from = t2.town_to and t1.town_to = t2.town_from
+and t1.time_out < t2.time_in and t2.time_out < t1.time_in
+and t1.trip_no < t2.trip_no),
+
+times_2 as (select trip1, trip2,
+datediff(millisecond, '1900-01-01', t_s_1) t_s_1,
+datediff(millisecond, '1900-01-01', t_s_2) t_s_2,
+datediff(millisecond, '1900-01-01', t_e_1) t_e_1,
+datediff(millisecond, '1900-01-01', t_e_2) t_e_2
+from times_1),
+
+times_3 as (select trip1, trip2,
+min(t_s_1) t_s_1,
+min(t_s_2) t_s_2,
+min(t_e_1) t_e_1,
+min(t_e_2) t_e_2
+from times_2 group by trip1, trip2),
+
+speeds_1 as (select *,
+1000.0 / (t_e_1 - t_s_1) v_1,
+1000.0 / (t_e_2 - t_s_2) v_2,
+t_s_2 - t_s_1 diff
+from times_3),
+
+speeds_2 as (select *,
+t_s_2 + (1000.0 - v_1 * diff) / (v_1 + v_2) tres
+from speeds_1),
+
+rslt as 
+(select trip1, trip2, dateadd(second, round(tres/1000,0), '1900-01-01') tm from speeds_2)
+
+select trip1, trip2, format(tm, 'HH:mm:ss') time from rslt
