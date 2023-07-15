@@ -1,3 +1,17 @@
+<aero>
+	<trip>
+		<row>
+			<trip_no>9999</trip_no>
+			<id_comp>5</id_comp>
+			<plane>Boeing</plane>
+			<town_from>London</town_from>
+			<town_to>Singapore</town_to>
+			<time_out>1900-01-01 07:00:00.000</time_out>
+			<time_in>1900-01-01 19:00:00.000</time_in>
+		</row>
+	</trip>
+</aero>
+
 with travels_1 as (select trip_no, time_out, town_from, town_to,
 case when time_out > time_in then dateadd(day, 1, time_in) else time_in end time_in
 from trip),
@@ -21,8 +35,8 @@ when t1.time_out < t2.time_out then t2.time_in else t1.time_in end t_e_2
 from travels_3 t1
 join travels_3 t2
 on t1.town_from = t2.town_to and t1.town_to = t2.town_from
-and t1.time_out < t2.time_in and t2.time_out < t1.time_in
-and t1.trip_no < t2.trip_no),
+and (t2.time_out > t1.time_out and t2.time_out < t1.time_in
+or t2.time_in > t1.time_out and t2.time_in < t1.time_in)),
 
 times_2 as (select trip1, trip2,
 datediff(millisecond, '1900-01-01', t_s_1) t_s_1,
@@ -51,4 +65,7 @@ from speeds_1),
 rslt as 
 (select trip1, trip2, dateadd(second, round(tres/1000,0), '1900-01-01') tm from speeds_2)
 
-select trip1, trip2, format(tm, 'HH:mm:ss') time from rslt
+select distinct
+case when trip1 > trip2 then trip2 else trip1 end, 
+case when trip1 > trip2 then trip1 else trip2 end, 
+format(tm, 'HH:mm:ss') time from rslt
